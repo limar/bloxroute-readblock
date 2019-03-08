@@ -16,9 +16,9 @@ import binascii
 from collections import namedtuple
 from io import SEEK_SET, SEEK_CUR
 from ctypes import Structure, c_uint32, c_int32, c_int64, c_uint16, c_char, c_byte, sizeof
-from io import BytesIO
 import hashlib
-from wrapper_streams import *
+from wrapper_streams import HashedStream, HexStream
+import sys
 
 
 class ReadableUnit:
@@ -196,10 +196,15 @@ def read_message(stream):
 
     return message_header
 
-def main():
-    with open('/Users/marklifshits/work/bitcoin-block/sample_block.txt', 'rb') as f:
+def main(argv):
+    if len(argv) < 2:
+        print("Usage:\n", "\tparseblock.py <filepath>")
+        return
+
+    filepath = argv[1]
+    with open(filepath, 'rb') as f:
         hs = HexStream(f)
         read_message(hs)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
