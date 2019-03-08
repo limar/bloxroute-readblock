@@ -113,9 +113,7 @@ class Test_ParseBlockTests(unittest.TestCase):
         
         hexdigest = binascii.b2a_hex(transaction.transaction_hash.digest()[::-1])
         self.assertEqual(hexdigest, GenesisTransaction.transaction_hash)
-    
-    def test2(self):
-        pass
+
 
 if __name__ == '__main__':
     unittest.main()

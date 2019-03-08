@@ -18,6 +18,7 @@ from io import SEEK_SET, SEEK_CUR
 from ctypes import Structure, c_uint32, c_int32, c_int64, c_uint16, c_char, c_byte, sizeof
 from io import BytesIO
 import hashlib
+from wrapper_streams import *
 
 
 class ReadableUnit:
@@ -117,14 +118,13 @@ class Transaction(ReadableUnit):
         
         tx_in_count = read_varint(stream)
         # skip tx inputs
-        for i in range(tx_in_count):
-            print('\t tx_in', i, 'out of', tx_in_count)
-            ti = TxIn.from_stream(stream)
+        for _ in range(tx_in_count):
+            TxIn.from_stream(stream)
         
         tx_out_count = read_varint(stream)
         # skip tx outputs
         for _ in range(tx_out_count):
-            to = TxOut.from_stream(stream)
+            TxOut.from_stream(stream)
         
         if flag is not None:
             for _ in range(tx_in_count):
@@ -158,43 +158,7 @@ class BlockHeader(Structure):
         inst.block_hash = hashlib.sha256(stream.hash.digest())
         inst.txn_count = read_varint(stream)
         return inst
-    
-class HexStream:
-    def __init__(self, stream):
-        self.stream = stream
-    
-    def read(self, n):
-        text = self.stream.read(n*2)
-        return binascii.a2b_hex(text)
-    
-    def readinto(self, b):
-        size = sizeof(b)
-        data = self.read(size)
-        BytesIO(data).readinto(b)
-  
-    def tell(self):
-        return int(self.stream.tell()/2)
-    
-    # def seek(self, offset, whence = SEEK_SET):
-    #     self.stream.seek(int(offset*2), whence)
 
-class HashedStream:
-    def __init__(self, stream):
-        self.stream = stream
-        self.hash = hashlib.sha256()
-    
-    def read(self, n):
-        data = self.stream.read(n)
-        self.hash.update(data)
-        return data
-    
-    def readinto(self, b):
-        size = sizeof(b)
-        data = self.read(size)
-        BytesIO(data).readinto(b)
-    
-    def tell(self):
-        return self.stream.tell()
 
 def read_varint(stream):
     data = stream.read(1)
