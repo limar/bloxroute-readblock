@@ -207,7 +207,7 @@ def read_message(stream):
         block_header = BlockHeader.from_stream(stream)
         for i in range(block_header.txn_count):
             t = Transaction.from_stream(stream)
-            print('Transaction', i, 'from', block_header.txn_count, 'start', t.start_offset, 'end', t.end_offset)
+            print('Transaction', i + 1, 'from', block_header.txn_count, 'start', t.start_offset, 'end', t.end_offset)
 
     return message_header
 
