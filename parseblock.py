@@ -181,9 +181,18 @@ def read_message(stream):
     message_header = MessageHeader.from_stream(stream)
     if message_header.command.decode('ascii') == 'block':
         block_header = BlockHeader.from_stream(stream)
+        print("Block header:")
+        print("\tblock hash:", block_header.block_hash.hexdigest())
+        print("\tprevious block hash:", binascii.b2a_hex(block_header.prev_block))
+        print("\tnumber of transactions: ", block_header.txn_count)
+        print()
         for i in range(block_header.txn_count):
             t = Transaction.from_stream(stream)
-            print('Transaction', i + 1, 'from', block_header.txn_count, 'start', t.start_offset, 'end', t.end_offset)
+            print('Transaction', i + 1,
+            'start', t.start_offset,
+            'length',t.end_offset - t.start_offset,
+            'end', t.end_offset,
+            'hash', t.transaction_hash.hexdigest())
 
     return message_header
 
