@@ -14,6 +14,7 @@ class GenesisBlock:
     version = 1
     bits = 486604799
     nonce = 2083236893
+    block_hash = b'000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'
 
 class GenesisTransaction:
     size = 204
@@ -99,6 +100,9 @@ class Test_ParseBlockTests(unittest.TestCase):
         self.assertEqual(binascii.b2a_hex(header.prev_block), GenesisBlock.prev_block)
         self.assertEqual(binascii.b2a_hex(bytes(header.merkle_root)[::-1]), GenesisBlock.merkle_root)
         self.assertEqual(header.txn_count, GenesisBlock.transaction_count)
+        
+        block_hexdigest = binascii.b2a_hex(header.block_hash.digest()[::-1])
+        self.assertEqual(block_hexdigest, GenesisBlock.block_hash)
 
         self.assertEqual(binary_stream.tell(), len(GenesisBlock.block_header))
         

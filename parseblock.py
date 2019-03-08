@@ -153,7 +153,9 @@ class BlockHeader(Structure):
     @classmethod
     def from_stream(cls, stream):
         inst = cls()
+        stream = HashedStream(stream)
         stream.readinto(inst)
+        inst.block_hash = hashlib.sha256(stream.hash.digest())
         inst.txn_count = read_varint(stream)
         return inst
     
