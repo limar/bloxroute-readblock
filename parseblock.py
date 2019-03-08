@@ -17,6 +17,7 @@ from collections import namedtuple
 from io import SEEK_SET, SEEK_CUR
 from ctypes import Structure, c_uint32, c_int32, c_int64, c_uint16, c_char, c_byte, sizeof
 from io import BytesIO
+import hashlib
 
 
 class ReadableUnit:
@@ -51,7 +52,7 @@ class TxIn(ReadableUnit):
         inst.previous_output = OutPoint.from_stream(stream)
         inst.script_length = read_varint(stream)
         # skip script
-        stream.seek(inst.script_length, SEEK_CUR)
+        stream.read(inst.script_length)
         inst.sequence = c_uint32()
         stream.readinto(inst.sequence)
         return inst
@@ -64,7 +65,7 @@ class TxOut(ReadableUnit):
         stream.readinto(inst.value)
         inst.pk_script_length = read_varint(stream)
         # skip pk_skript
-        stream.seek(inst.pk_script_length, SEEK_CUR)
+        stream.read(inst.pk_script_length)
         return inst
 
 class TxWitness(ReadableUnit):
@@ -81,20 +82,10 @@ class TxWitness(ReadableUnit):
             data_size = read_varint(stream)
             data_components.append(data_size)
             # skip data
-            stream.seek(data_size, SEEK_CUR)
+            stream.read(data_size)
         return TxWitness(data_components)
     
 class Transaction(ReadableUnit):
-#    TransactionTuple = namedtuple('TransactionTuple', 
-#                                  ('version', 
-#                                   'flag',
-#                                   'tx_in_count',
-#                                   'tx_in',
-#                                   'tx_out_count',
-#                                   'tx_out',
-#                                   'tx_witnesses',
-#                                   'lock_time'))
-    
     TransactionTuple = namedtuple('TransactionTuple', 
                                   ('version', 
                                    'flag',
@@ -102,12 +93,14 @@ class Transaction(ReadableUnit):
                                    'tx_out_count',
                                    'lock_time',
                                    'start_offset',
-                                   'end_offset'))
+                                   'end_offset',
+                                   'transaction_hash'))
         
         
     @classmethod
     def from_stream(cls, stream):
 
+        stream = HashedStream(stream)
         start_offset = stream.tell()
         version = c_int32()
         stream.readinto(version)
@@ -143,10 +136,10 @@ class Transaction(ReadableUnit):
         
         end_offset = stream.tell()
         
+        transaction_hash = hashlib.sha256(stream.hash.digest())
         return cls.TransactionTuple(version, flag, tx_in_count, tx_out_count, 
-                                lock_time, start_offset, end_offset)
+                                lock_time, start_offset, end_offset, transaction_hash)
         
-            
 
 class BlockHeader(Structure):
     _fields_ = [ ('version', c_int32),
@@ -164,7 +157,7 @@ class BlockHeader(Structure):
         inst.txn_count = read_varint(stream)
         return inst
     
-class HexStream():
+class HexStream:
     def __init__(self, stream):
         self.stream = stream
     
@@ -180,9 +173,26 @@ class HexStream():
     def tell(self):
         return int(self.stream.tell()/2)
     
-    def seek(self, offset, whence = SEEK_SET):
-        self.stream.seek(int(offset*2), whence)
+    # def seek(self, offset, whence = SEEK_SET):
+    #     self.stream.seek(int(offset*2), whence)
 
+class HashedStream:
+    def __init__(self, stream):
+        self.stream = stream
+        self.hash = hashlib.sha256()
+    
+    def read(self, n):
+        data = self.stream.read(n)
+        self.hash.update(data)
+        return data
+    
+    def readinto(self, b):
+        size = sizeof(b)
+        data = self.read(size)
+        BytesIO(data).readinto(b)
+    
+    def tell(self):
+        return self.stream.tell()
 
 def read_varint(stream):
     data = stream.read(1)

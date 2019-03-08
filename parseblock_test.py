@@ -20,6 +20,7 @@ class GenesisTransaction:
     bits = 486604799
     nonce = 2083236893
     inputs = 0
+    transaction_hash = b'4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b'
 '''
     ('version', 
                                    'flag',
@@ -105,6 +106,9 @@ class Test_ParseBlockTests(unittest.TestCase):
         self.assertEqual(transaction.tx_in_count, 1)
         self.assertEqual(transaction.tx_out_count, 1)
         self.assertEqual(transaction.end_offset - transaction.start_offset, GenesisTransaction.size)
+        
+        hexdigest = binascii.b2a_hex(transaction.transaction_hash.digest()[::-1])
+        self.assertEqual(hexdigest, GenesisTransaction.transaction_hash)
     
     def test2(self):
         pass
