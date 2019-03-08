@@ -29,6 +29,7 @@ class Test_ParseBlockTests(unittest.TestCase):
         self.assertEqual(header.nonce, GenesisBlock.nonce)
         self.assertEqual(binascii.b2a_hex(header.prev_block), GenesisBlock.prev_block)
         self.assertEqual(binascii.b2a_hex(bytes(header.merkle_root)[::-1]), GenesisBlock.merkle_root)
+        self.assertEqual(header.txn_count, GenesisBlock.transaction_count)
     
     def test2(self):
         pass
