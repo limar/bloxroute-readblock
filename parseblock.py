@@ -8,6 +8,7 @@ Created on Thu Mar  7 12:25:05 2019
 
 '''
     - should we check Meassage header checksum?
+    - how to detect transaction flag presense ?
 '''
 
 import struct
@@ -111,25 +112,26 @@ class Transaction(ReadableUnit):
         version = c_int32()
         stream.readinto(version)
 
-        flag = c_uint16()
-        stream.readinto(flag)
+        flag = None
+        # flag = c_uint16()
+        # stream.readinto(flag)
         
-        if flag.value != 1:
-            stream.seek(- sizeof(flag), SEEK_CUR)
-            flag = None
-        else:
-            flag = flag.value
+        # if flag.value != 1:
+        #     stream.seek(- sizeof(flag), SEEK_CUR)
+        #     flag = None
+        # else:
+        #     flag = flag.value
         
         tx_in_count = read_varint(stream)
         # skip tx inputs
         for i in range(tx_in_count):
             print('\t tx_in', i, 'out of', tx_in_count)
-            _ = TxIn.from_stream(stream)
+            ti = TxIn.from_stream(stream)
         
         tx_out_count = read_varint(stream)
         # skip tx outputs
         for _ in range(tx_out_count):
-            _ = TxOut.from_stream(stream)
+            to = TxOut.from_stream(stream)
         
         if flag is not None:
             for _ in range(tx_in_count):
@@ -179,7 +181,7 @@ class HexStream():
         return int(self.stream.tell()/2)
     
     def seek(self, offset, whence = SEEK_SET):
-        self.stream.seek(int(offset/2), whence)
+        self.stream.seek(int(offset*2), whence)
 
 
 def read_varint(stream):
