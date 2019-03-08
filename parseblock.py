@@ -203,9 +203,9 @@ def read_message(stream):
     message_header = MessageHeader.from_stream(stream)
     if message_header.command.decode('ascii') == 'block':
         block_header = BlockHeader.from_stream(stream)
-    for i in range(block_header.txn_count):
-        t = Transaction.from_stream(stream)
-        print('Transaction', i, 'from', block_header.txn_count, 'start', t.start_offset, 'end', t.end_offset)
+        for i in range(block_header.txn_count):
+            t = Transaction.from_stream(stream)
+            print('Transaction', i, 'from', block_header.txn_count, 'start', t.start_offset, 'end', t.end_offset)
 
     return message_header
 
